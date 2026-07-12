@@ -25,11 +25,21 @@ jobs:
 
       - name: Generate icon
         run: |
-          python create_icon.py
+          if (Test-Path create_icon.py) {
+            python create_icon.py
+          } else {
+            Write-Host "create_icon.py not found, skipping icon generation"
+          }
+        shell: pwsh
 
       - name: Build with PyInstaller
         run: |
-          python -m PyInstaller --noconfirm --onefile --windowed --name ShowCut --icon=icon.ico --hidden-import=PyQt5 --hidden-import=PyQt5.QtCore --hidden-import=PyQt5.QtGui --hidden-import=PyQt5.QtWidgets --hidden-import=settings_dialog main.py
+          $iconArg = ""
+          if (Test-Path icon.ico) {
+            $iconArg = "--icon=icon.ico"
+          }
+          python -m PyInstaller --noconfirm --onefile --windowed --name ShowCut $iconArg --hidden-import=PyQt5 --hidden-import=PyQt5.QtCore --hidden-import=PyQt5.QtGui --hidden-import=PyQt5.QtWidgets main.py
+        shell: pwsh
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -46,29 +56,16 @@ jobs:
             ## ShowCut Screenshot Tool
 
             ### Features
-            - 📷 Screenshot with window auto-alignment
-            - ✏️ Annotation tools: Rectangle, Ellipse, Line, Arrow, Polygon, Text
-            - ⌖ Orthogonal positioning (8-direction constraint)
-            - 🎨 Custom line styles: color, width, dashed/solid
-            - 🌐 Translation
-            - ⚙️ Custom keyboard shortcuts
+            - Screenshot with window auto-alignment
+            - Annotation tools: Rectangle, Ellipse, Line, Arrow, Polygon, Text
+            - Orthogonal positioning (8-direction constraint)
+            - Custom line styles: color, width, dashed/solid
+            - Translation
+            - Custom keyboard shortcuts
 
             ### Usage
             1. Download ShowCut.exe
             2. Double-click to run (portable, no install needed)
             3. Click "Start Capture" or press Ctrl+Shift+A
-
-            ### Shortcuts
-            - Ctrl+Shift+A: Start capture
-            - R: Rectangle tool
-            - E: Ellipse tool
-            - L: Line tool
-            - A: Arrow tool
-            - P: Polygon tool
-            - T: Text tool
-            - Ctrl+Z: Undo
-            - Ctrl+S: Save
-            - Ctrl+C: Copy to clipboard
-            - Shift: Toggle orthogonal mode
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
