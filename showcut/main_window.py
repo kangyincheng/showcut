@@ -1,4 +1,4 @@
-from PyQt5.QtCore import Qt, QSize, QTimer
+from PyQt5.QtCore import Qt, QSize, QTimer, pyqtSignal
 from PyQt5.QtGui import QIcon, QPixmap, QPainter, QColor, QPen, QPainterPath
 from PyQt5.QtWidgets import (
     QMainWindow,
@@ -31,6 +31,8 @@ from translator import Translator
 
 
 class ColorButton(QPushButton):
+    colorChanged = pyqtSignal(QColor)
+
     def __init__(self, color=QColor(255, 0, 0), parent=None):
         super().__init__(parent)
         self.color = QColor(color)
@@ -59,11 +61,6 @@ class ColorButton(QPushButton):
 
     def get_color(self):
         return self.color
-
-
-from PyQt5.QtCore import pyqtSignal
-
-ColorButton.colorChanged = pyqtSignal(QColor)
 
 
 class ToolButton(QPushButton):
