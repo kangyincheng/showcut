@@ -1,0 +1,74 @@
+name: Build ShowCut
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install PyQt5 Pillow pyinstaller
+
+      - name: Generate icon
+        run: |
+          python create_icon.py
+
+      - name: Build with PyInstaller
+        run: |
+          python -m PyInstaller --noconfirm --onefile --windowed --name ShowCut --icon=icon.ico --hidden-import=PyQt5 --hidden-import=PyQt5.QtCore --hidden-import=PyQt5.QtGui --hidden-import=PyQt5.QtWidgets --hidden-import=settings_dialog main.py
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ShowCut-Windows
+          path: dist/ShowCut.exe
+
+      - name: Create Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/ShowCut.exe
+          body: |
+            ## ShowCut Screenshot Tool
+
+            ### Features
+            - 📷 Screenshot with window auto-alignment
+            - ✏️ Annotation tools: Rectangle, Ellipse, Line, Arrow, Polygon, Text
+            - ⌖ Orthogonal positioning (8-direction constraint)
+            - 🎨 Custom line styles: color, width, dashed/solid
+            - 🌐 Translation
+            - ⚙️ Custom keyboard shortcuts
+
+            ### Usage
+            1. Download ShowCut.exe
+            2. Double-click to run (portable, no install needed)
+            3. Click "Start Capture" or press Ctrl+Shift+A
+
+            ### Shortcuts
+            - Ctrl+Shift+A: Start capture
+            - R: Rectangle tool
+            - E: Ellipse tool
+            - L: Line tool
+            - A: Arrow tool
+            - P: Polygon tool
+            - T: Text tool
+            - Ctrl+Z: Undo
+            - Ctrl+S: Save
+            - Ctrl+C: Copy to clipboard
+            - Shift: Toggle orthogonal mode
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
