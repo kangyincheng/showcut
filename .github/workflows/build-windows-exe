@@ -1,0 +1,47 @@
+name: Build Windows EXE
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-windows-exe:
+    runs-on: windows-latest
+    outputs:
+      artifact-name: showcut-windows-exe
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install build dependencies
+        # If you have requirements.txt: install them. Otherwise add pip install lines for your deps.
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; else pip install pyinstaller; fi
+          pip install pyinstaller
+
+      - name: Build exe with PyInstaller
+        env:
+          ENTRY_POINT: "path/to/your/entry_script.py"  # <<-- change this to your main script
+          EXENAME: "showcut"
+        run: |
+          echo "Using entry point: $ENTRY_POINT"
+          # Use onefile to create a single EXE, --noconsole for GUI apps (remove if CLI)
+          pyinstaller --onefile --name %EXENAME% "%ENTRY_POINT%"
+          # Output exe will be in dist\showcut.exe
+
+      - name: List dist contents
+        run: dir dist
+
+      - name: Upload Windows EXE artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: showcut-windows-exe
+          path: dist/*.exe
